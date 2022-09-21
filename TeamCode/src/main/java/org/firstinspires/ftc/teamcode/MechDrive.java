@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import org.firstinspires.ftc.teamcode.Constants;
 
 @TeleOp(name="Mecanum Drive", group="Iterative Opmode")
 
@@ -16,10 +17,10 @@ public class MechDrive extends OpMode {
     @Override
     public void init() {
 
-        front_left   = hardwareMap.get(DcMotor.class, "front_left");
-        front_right  = hardwareMap.get(DcMotor.class, "front_right");
-        back_left    = hardwareMap.get(DcMotor.class, "back_left");
-        back_right   = hardwareMap.get(DcMotor.class, "back_right");
+        front_left   = hardwareMap.get(DcMotor.class, Constants.Motors.front_left);
+        front_right  = hardwareMap.get(DcMotor.class, Constants.Motors.front_right);
+        back_left    = hardwareMap.get(DcMotor.class, Constants.Motors.back_left);
+        back_right   = hardwareMap.get(DcMotor.class, Constants.Motors.back_right);
     }
 
     @Override
