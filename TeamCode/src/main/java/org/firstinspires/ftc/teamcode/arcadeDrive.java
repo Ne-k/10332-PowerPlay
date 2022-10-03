@@ -3,43 +3,35 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name="arcodeDrive", group="Linear Opmode")
-public class arcadeDrive extends LinearOpMode
-{
-    DcMotor leftMotor, rightMotor;
-    float   leftPower, rightPower, turnLeft, turnRight;
+public class arcadeDrive extends LinearOpMode {
 
-    // called when init button is  pressed.
     @Override
     public void runOpMode() throws InterruptedException
     {
-        leftMotor = hardwareMap.dcMotor.get(Constants.Motors.left);
-        rightMotor = hardwareMap.dcMotor.get(Constants.Motors.right);
+        DcMotor leftMotor = hardwareMap.dcMotor.get(Constants.Motors.left);
+        DcMotor rightMotor = hardwareMap.dcMotor.get(Constants.Motors.right);
+
 
         leftMotor.setDirection(DcMotor.Direction.REVERSE);
 
         telemetry.addData("Mode", "waiting");
         telemetry.update();
 
-        // wait for start button.
-        telemetry.addData("Status", "Initialized");
+        telemetry.addData("Status", opModeIsActive() ? "Active" : "Inactive");
         telemetry.update();
         waitForStart();
 
         while (opModeIsActive())
         {
-            leftPower =  gamepad1.left_stick_y;
-            rightPower = gamepad1.left_stick_y;
+            float leftPower = gamepad1.left_stick_y * 0.6f;
+            float rightPower = gamepad1.left_stick_y * 0.6f;
 
-            turnLeft = gamepad1.right_stick_x * -1;
-            turnRight = gamepad1.right_stick_x * 1;
-
-
-           // leftMotor.setPower(Range.clip(leftPower, -1.0, 1.0));
-           // rightMotor.setPower(Range.clip(rightPower, -1.0, 1.0));
-
+            float turnLeft = (gamepad1.right_stick_x * -1) * 0.5f;
+            float turnRight = (gamepad1.right_stick_x * 1) * 0.5f;
 
             leftMotor.setPower(leftPower);
             rightMotor.setPower(rightPower);
@@ -47,12 +39,11 @@ public class arcadeDrive extends LinearOpMode
             leftMotor.setPower(turnLeft);
             rightMotor.setPower(turnRight);
 
-            /*
-             telemetry.addData("Mode", "running");
-            telemetry.addData("stick", "  y=" + yValue + "  x=" + xValue);
-            telemetry.addData("power", "  left=" + leftPower + "  right=" + rightPower);
+            telemetry.addData("Right trigger", gamepad1.right_trigger);
             telemetry.update();
-             */
+
+
+
 
             idle();
         }
