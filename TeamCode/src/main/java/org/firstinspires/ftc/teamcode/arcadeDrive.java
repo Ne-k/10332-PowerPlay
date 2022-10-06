@@ -1,14 +1,23 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
+import android.graphics.Bitmap;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.function.Consumer;
+import org.firstinspires.ftc.robotcore.external.function.Continuation;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.pipelines.pipeline;
+import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
+import org.firstinspires.ftc.teamcode.pipelines.colorDetectionPipeline;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
+import com.acmerobotics.dashboard.FtcDashboard;
+
 
 @TeleOp(name="arcodeDrive", group="Linear Opmode")
 public class arcadeDrive extends LinearOpMode
@@ -18,13 +27,12 @@ public class arcadeDrive extends LinearOpMode
     float   leftPower, rightPower, turnLeft, turnRight;
     OpenCvCamera webcam;
 
+    colorDetectionPipeline pipeline = new colorDetectionPipeline(telemetry);
+
     @Override
     public void runOpMode() throws InterruptedException
     {
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Im watching you"), cameraMonitorViewId);
 
-        webcam.setPipeline(new pipeline());
         leftMotor = hardwareMap.dcMotor.get(Constants.Motors.left);
         rightMotor = hardwareMap.dcMotor.get(Constants.Motors.right);
 
@@ -38,7 +46,13 @@ public class arcadeDrive extends LinearOpMode
         telemetry.update();
 
         waitForStart();
+
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Im watching you"), cameraMonitorViewId);
+        webcam.setPipeline(new colorDetectionPipeline(telemetry));
+
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+
             @Override
             public void onOpened() {
                 /*
@@ -57,7 +71,10 @@ public class arcadeDrive extends LinearOpMode
                  * For a rear facing camera or a webcam, rotation is defined assuming the camera is facing
                  * away from the user.
                  */
+
                 webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+
+
             }
 
             @Override
@@ -88,13 +105,6 @@ public class arcadeDrive extends LinearOpMode
             leftMotor.setPower(turnLeft);
             rightMotor.setPower(turnRight);
 
-            telemetry.addData("Frame Count", webcam.getFrameCount());
-            telemetry.addData("FPS", String.format("%.2f", webcam.getFps()));
-            telemetry.addData("Total frame time ms", webcam.getTotalFrameTimeMs());
-            telemetry.addData("Pipeline time ms", webcam.getPipelineTimeMs());
-            telemetry.addData("Overhead time ms", webcam.getOverheadTimeMs());
-            telemetry.addData("Theoretical max FPS", webcam.getCurrentPipelineMaxFps());
-            telemetry.update();
             /*
              telemetry.addData("Mode", "running");
             telemetry.addData("stick", "  y=" + yValue + "  x=" + xValue);
@@ -105,5 +115,7 @@ public class arcadeDrive extends LinearOpMode
             idle();
         }
     }
+
+
 
 }
