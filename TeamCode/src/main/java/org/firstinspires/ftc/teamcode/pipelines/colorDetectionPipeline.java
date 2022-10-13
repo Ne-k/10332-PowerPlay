@@ -2,43 +2,61 @@ package org.firstinspires.ftc.teamcode.pipelines;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class colorDetectionPipeline extends OpenCvPipeline {
+    public static int valMid = -1;
+    public static int valLeft = -1;
+    public static int valRight = -1;
 
+    public static float rectHeight = .6f/8f;
+    public static float rectWidth = 1.5f/8f;
+
+    public static float offsetX = 0f/8f;//changing this moves the three rects and the three circles left or right, range : (-2, 2) not inclusive
+    public static float offsetY = 0f/8f;//changing this moves the three rects and circles up or down, range: (-4, 4) not inclusive
+
+    public final static float[] midPos = {4f/8f+offsetX, 4f/8f+offsetY};//0 = col, 1 = row
+    public final static float[] leftPos = {2f/8f+offsetX, 4f/8f+offsetY};
+    public final static float[] rightPos = {6f/8f+offsetX, 4f/8f+offsetY};
+
+    public enum Position {
+        LEFT,
+        RIGHT,
+        MID,
+        UNKNOWN
+    }
+
+    public static Position position = Position.UNKNOWN;
+    //moves all rectangles right or left by amount. units are in ratio to monitor
 
     /*
      * An enum to define the skystone position
      */
-    public enum SkystonePosition
-    {
-        LEFT,
-        CENTER,
-        RIGHT,
-        UNKNOWN
+    public enum Stage {//color difference. greyscale
+        detection,//includes outlines
+        THRESHOLD,//b&w
+        RAW_IMAGE,//displays raw view
     }
 
-    /*
-     * Some color constants
-     */
-    static final Scalar BLUE = new Scalar(0, 0, 255);
-    static final Scalar GREEN = new Scalar(0, 255, 0);
+    private Stage stageToRenderToViewport = Stage.detection;
+    private final Stage[] stages = Stage.values();
 
-    /*
-     * The core values which define the location and size of the sample regions
-     */
-    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(109,98);
-    static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(181,98);
-    static final Point REGION3_TOPLEFT_ANCHOR_POINT = new Point(253,98);
-    static final int REGION_WIDTH = 20;
-    static final int REGION_HEIGHT = 20;
+    Mat thresholdMat = new Mat();
+    Mat yCbCrChan2Mat = new Mat();
+    Mat all = new Mat();
+    List<MatOfPoint> contoursList = new ArrayList<>();
 
     /*
      * Points which actually define the sample region rectangles, derived from above values
@@ -57,226 +75,137 @@ public class colorDetectionPipeline extends OpenCvPipeline {
      *   ------------------------------------
      *
      */
-    Point region1_pointA = new Point(REGION1_TOPLEFT_ANCHOR_POINT.x, REGION1_TOPLEFT_ANCHOR_POINT.y);
-    Point region1_pointB = new Point(REGION1_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH, REGION1_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
-    Point region2_pointA = new Point(REGION2_TOPLEFT_ANCHOR_POINT.x, REGION2_TOPLEFT_ANCHOR_POINT.y);
-    Point region2_pointB = new Point(REGION2_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH, REGION2_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
-    Point region3_pointA = new Point(REGION3_TOPLEFT_ANCHOR_POINT.x, REGION3_TOPLEFT_ANCHOR_POINT.y);
-    Point region3_pointB = new Point(REGION3_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH, REGION3_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
 
-    /*
-     * Working variables
-     */
-    Mat region1_Cb, region2_Cb, region3_Cb;
-    Mat YCrCb = new Mat();
-    Mat Cb = new Mat();
-    int avg1, avg2, avg3;
-
-    // Volatile since accessed by OpMode thread w/o synchronization
-    private volatile SkystonePosition position = SkystonePosition.LEFT;
-
-    /*
-     * This function takes the RGB frame, converts to YCrCb,
-     * and extracts the Cb channel to the 'Cb' variable
-     */
-    void inputToCb(Mat input)
-    {
-        Imgproc.cvtColor(input, YCrCb, Imgproc.COLOR_RGB2YCrCb);
-        Core.extractChannel(YCrCb, Cb, 2);
-    }
 
     @Override
-    public void init(Mat firstFrame)
+    public void onViewportTapped()
     {
         /*
-         * We need to call this in order to make sure the 'Cb'
-         * object is initialized, so that the submats we make
-         * will still be linked to it on subsequent frames. (If
-         * the object were to only be initialized in processFrame,
-         * then the submats would become delinked because the backing
-         * buffer would be re-allocated the first time a real frame
-         * was crunched)
+         * Note that this method is invoked from the UI thread
+         * so whatever we do here, we must do quickly.
          */
-        inputToCb(firstFrame);
 
-        /*
-         * Submats are a persistent reference to a region of the parent
-         * buffer. Any changes to the child affect the parent, and the
-         * reverse also holds true.
-         */
-        region1_Cb = Cb.submat(new Rect(region1_pointA, region1_pointB));
-        region2_Cb = Cb.submat(new Rect(region2_pointA, region2_pointB));
-        region3_Cb = Cb.submat(new Rect(region3_pointA, region3_pointB));
+        int currentStageNum = stageToRenderToViewport.ordinal();
+
+        int nextStageNum = currentStageNum + 1;
+
+        if(nextStageNum >= stages.length)
+        {
+            nextStageNum = 0;
+        }
+
+        stageToRenderToViewport = stages[nextStageNum];
     }
 
     @Override
     public Mat processFrame(Mat input)
     {
+        contoursList.clear();
         /*
-         * Overview of what we're doing:
-         *
-         * We first convert to YCrCb color space, from RGB color space.
-         * Why do we do this? Well, in the RGB color space, chroma and
-         * luma are intertwined. In YCrCb, chroma and luma are separated.
-         * YCrCb is a 3-channel color space, just like RGB. YCrCb's 3 channels
-         * are Y, the luma channel (which essentially just a B&W image), the
-         * Cr channel, which records the difference from red, and the Cb channel,
-         * which records the difference from blue. Because chroma and luma are
-         * not related in YCrCb, vision code written to look for certain values
-         * in the Cr/Cb channels will not be severely affected by differing
-         * light intensity, since that difference would most likely just be
-         * reflected in the Y channel.
-         *
-         * After we've converted to YCrCb, we extract just the 2nd channel, the
-         * Cb channel. We do this because stones are bright yellow and contrast
-         * STRONGLY on the Cb channel against everything else, including SkyStones
-         * (because SkyStones have a black label).
-         *
-         * We then take the average pixel value of 3 different regions on that Cb
-         * channel, one positioned over each stone. The brightest of the 3 regions
-         * is where we assume the SkyStone to be, since the normal stones show up
-         * extremely darkly.
-         *
-         * We also draw rectangles on the screen showing where the sample regions
-         * are, as well as drawing a solid rectangle over top the sample region
-         * we believe is on top of the SkyStone.
-         *
-         * In order for this whole process to work correctly, each sample region
-         * should be positioned in the center of each of the first 3 stones, and
-         * be small enough such that only the stone is sampled, and not any of the
-         * surroundings.
+         * This pipeline finds the contours of yellow blobs such as the Gold Mineral
+         * from the Rover Ruckus game.
          */
 
-        /*
-         * Get the Cb channel of the input frame after conversion to YCrCb
-         */
-        inputToCb(input);
+        //color diff cb.
+        //lower cb = more blue = skystone = white
+        //higher cb = less blue = yellow stone = grey
+        Imgproc.cvtColor(input, yCbCrChan2Mat, Imgproc.COLOR_RGB2YCrCb);//converts rgb to ycrcb
+        Core.extractChannel(yCbCrChan2Mat, yCbCrChan2Mat, 2);//takes cb difference and stores
 
-        /*
-         * Compute the average pixel value of each submat region. We're
-         * taking the average of a single channel buffer, so the value
-         * we need is at index 0. We could have also taken the average
-         * pixel value of the 3-channel image, and referenced the value
-         * at index 2 here.
-         */
-        avg1 = (int) Core.mean(region1_Cb).val[0];
-        avg2 = (int) Core.mean(region2_Cb).val[0];
-        avg3 = (int) Core.mean(region3_Cb).val[0];
+        //b&w
+        Imgproc.threshold(yCbCrChan2Mat, thresholdMat, 102, 255, Imgproc.THRESH_BINARY_INV);
 
-        /*
-         * Draw a rectangle showing sample region 1 on the screen.
-         * Simply a visual aid. Serves no functional purpose.
-         */
-        Imgproc.rectangle(
-                input, // Buffer to draw on
-                region1_pointA, // First point which defines the rectangle
-                region1_pointB, // Second point which defines the rectangle
-                BLUE, // The color the rectangle is drawn in
-                2); // Thickness of the rectangle lines
-
-        /*
-         * Draw a rectangle showing sample region 2 on the screen.
-         * Simply a visual aid. Serves no functional purpose.
-         */
-        Imgproc.rectangle(
-                input, // Buffer to draw on
-                region2_pointA, // First point which defines the rectangle
-                region2_pointB, // Second point which defines the rectangle
-                BLUE, // The color the rectangle is drawn in
-                2); // Thickness of the rectangle lines
-
-        /*
-         * Draw a rectangle showing sample region 3 on the screen.
-         * Simply a visual aid. Serves no functional purpose.
-         */
-        Imgproc.rectangle(
-                input, // Buffer to draw on
-                region3_pointA, // First point which defines the rectangle
-                region3_pointB, // Second point which defines the rectangle
-                BLUE, // The color the rectangle is drawn in
-                2); // Thickness of the rectangle lines
+        //outline/contour
+        Imgproc.findContours(thresholdMat, contoursList, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        yCbCrChan2Mat.copyTo(all);//copies mat object
+        //Imgproc.drawContours(all, contoursList, -1, new Scalar(255, 0, 0), 3, 8);//draws blue contours
 
 
-        /*
-         * Find the max of the 3 averages
-         */
-        int maxOneTwo = Math.max(avg1, avg2);
-        int max = Math.max(maxOneTwo, avg3);
+        //get values from frame
+        double[] pixMid = thresholdMat.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
+        valMid = (int)pixMid[0];
 
+        double[] pixLeft = thresholdMat.get((int)(input.rows()* leftPos[1]), (int)(input.cols()* leftPos[0]));//gets value at circle
+        valLeft = (int)pixLeft[0];
 
-        /*
-         * Now that we found the max, we actually need to go and
-         * figure out which sample region that value was from
-         */
-        if(max == avg1) // Was it from region 1?
-        {
+        double[] pixRight = thresholdMat.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
+        valRight = (int)pixRight[0];
 
+        //create three points
+        Point pointMid = new Point((int)(input.cols()* midPos[0]), (int)(input.rows()* midPos[1]));
+        Point pointLeft = new Point((int)(input.cols()* leftPos[0]), (int)(input.rows()* leftPos[1]));
+        Point pointRight = new Point((int)(input.cols()* rightPos[0]), (int)(input.rows()* rightPos[1]));
 
-            position = SkystonePosition.RIGHT; // Record our analysis
+        //draw circles on those points
+        Imgproc.circle(all, pointMid,5, new Scalar( 255, 0, 0 ),1 );//draws circle
+        Imgproc.circle(all, pointLeft,5, new Scalar( 255, 0, 0 ),1 );//draws circle
+        Imgproc.circle(all, pointRight,5, new Scalar( 255, 0, 0 ),1 );//draws circle
 
-            /*
-             * Draw a solid rectangle on top of the chosen region.
-             * Simply a visual aid. Serves no functional purpose.
-             */
-            Imgproc.rectangle(
-                    input, // Buffer to draw on
-                    region1_pointA, // First point which defines the rectangle
-                    region1_pointB, // Second point which defines the rectangle
-                    GREEN, // The color the rectangle is drawn in
-                    -1); // Negative thickness means solid fill
-        }
-        else if(max == avg2) // Was it from region 2?
-        {
-            position = SkystonePosition.LEFT; // Record our analysis
+        //draw 3 rectangles
+        Imgproc.rectangle(//1-3
+                all,
+                new Point(
+                        input.cols()*(leftPos[0]-rectWidth/2),
+                        input.rows()*(leftPos[1]-rectHeight/2)),
+                new Point(
+                        input.cols()*(leftPos[0]+rectWidth/2),
+                        input.rows()*(leftPos[1]+rectHeight/2)),
+                new Scalar(0, 255, 0), 3);
+        Imgproc.rectangle(//3-5
+                all,
+                new Point(
+                        input.cols()*(midPos[0]-rectWidth/2),
+                        input.rows()*(midPos[1]-rectHeight/2)),
+                new Point(
+                        input.cols()*(midPos[0]+rectWidth/2),
+                        input.rows()*(midPos[1]+rectHeight/2)),
+                new Scalar(0, 255, 0), 3);
+        Imgproc.rectangle(//5-7
+                all,
+                new Point(
+                        input.cols()*(rightPos[0]-rectWidth/2),
+                        input.rows()*(rightPos[1]-rectHeight/2)),
+                new Point(
+                        input.cols()*(rightPos[0]+rectWidth/2),
+                        input.rows()*(rightPos[1]+rectHeight/2)),
+                new Scalar(0, 255, 0), 3);
 
-            /*
-             * Draw a solid rectangle on top of the chosen region.
-             * Simply a visual aid. Serves no functional purpose.
-             */
-            Imgproc.rectangle(
-                    input, // Buffer to draw on
-                    region2_pointA, // First point which defines the rectangle
-                    region2_pointB, // Second point which defines the rectangle
-                    GREEN, // The color the rectangle is drawn in
-                    -1); // Negative thickness means solid fill
-        }
-        else if (max == avg3) {
-            position = SkystonePosition.CENTER; // Record our analysis
-
-            /*
-             * Draw a solid rectangle on top of the chosen region.
-             * Simply a visual aid. Serves no functional purpose.
-             */
-            Imgproc.rectangle(
-                    input, // Buffer to draw on
-                    region3_pointA, // First point which defines the rectangle
-                    region3_pointB, // Second point which defines the rectangle
-                    GREEN, // The color the rectangle is drawn in
-                    -1); // Negative thickness means solid fill
+        if(valLeft == 255) {
+            position = Position.LEFT;
+        } else if(valMid == 255) {
+            position = Position.MID;
+        } else if(valRight == 255) {
+            position = Position.RIGHT;
         } else {
-            position = SkystonePosition.UNKNOWN;
+            position = Position.UNKNOWN;
+        }
+        switch (stageToRenderToViewport)
+        {
+            case THRESHOLD:
+            {
+                return thresholdMat;
+            }
 
-            Imgproc.rectangle(
-                    input, // Buffer to draw on
-                    region3_pointA, // First point which defines the rectangle
-                    region3_pointB, // Second point which defines the rectangle
-                    GREEN, // The color the rectangle is drawn in
-                    -1); // Negative thickness means solid fill
+            case detection:
+            {
+                return all;
+            }
+
+            case RAW_IMAGE:
+            {
+                return input;
+            }
+
+            default:
+            {
+                return input;
+            }
         }
 
-        /*
-         * Render the 'input' buffer to the viewport. But note this is not
-         * simply rendering the raw camera feed, because we called functions
-         * to add some annotations to this buffer earlier up.
-         */
-        return input;
     }
 
-    /*
-     * Call this from the OpMode thread to obtain the latest analysis
-     */
-    public SkystonePosition getAnalysis()
-    {
+    // create method that returns position
+    public Position getPosition() {
         return position;
     }
 }
