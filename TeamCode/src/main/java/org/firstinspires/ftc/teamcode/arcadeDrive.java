@@ -41,8 +41,7 @@ public class arcadeDrive extends LinearOpMode
     colorDetectionPipeline pipeline = new colorDetectionPipeline();
 
     @Override
-    public void runOpMode() throws InterruptedException
-    {
+    public void runOpMode() throws InterruptedException {
 
         leftMotor = hardwareMap.dcMotor.get(Constants.Motors.left);
         rightMotor = hardwareMap.dcMotor.get(Constants.Motors.right);
