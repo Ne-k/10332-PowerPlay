@@ -53,7 +53,7 @@ public class Mecanum extends LinearOpMode {
         final String[] drive_mode_name = {"tank", "airplane right", "airplane left",
                 "auto right", "auto left"};
         BNO055IMU.Parameters imu_params;
-
+        waitForStart();
         mtr_rf = hardwareMap.dcMotor.get(Constants.Motors.rf); //right front
         mtr_rr = hardwareMap.dcMotor.get(Constants.Motors.rr); // right rear
         mtr_lf = hardwareMap.dcMotor.get(Constants.Motors.lf); // left front
@@ -71,8 +71,6 @@ public class Mecanum extends LinearOpMode {
         initialize_motor(mtr_lf, DcMotorSimple.Direction.FORWARD, at_zero);
         initialize_motor(mtr_lr, DcMotorSimple.Direction.REVERSE, at_zero);
         reset_drive_encoders();
-
-        waitForStart();
         /*
         imu_params = new BNO055IMU.Parameters();
         imu_params.angleUnit = BNO055IMU.AngleUnit.DEGREES;
