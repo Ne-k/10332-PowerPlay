@@ -1,211 +1,133 @@
 package org.firstinspires.ftc.teamcode.pipelines;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 public class colorDetectionPipeline extends OpenCvPipeline {
-    public static int valMid = -1;
-    public static int valLeft = -1;
-    public static int valRight = -1;
+    /*
+    YELLOW  = Parking Left
+    CYAN    = Parking Middle
+    MAGENTA = Parking Right
+     */
 
-    public static float rectHeight = .6f/8f;
-    public static float rectWidth = 1.5f/8f;
-
-    public static float offsetX = 0f/8f;//changing this moves the three rects and the three circles left or right, range : (-2, 2) not inclusive
-    public static float offsetY = 0f/8f;//changing this moves the three rects and circles up or down, range: (-4, 4) not inclusive
-
-    public final static float[] midPos = {4f/8f+offsetX, 4f/8f+offsetY};//0 = col, 1 = row
-    public final static float[] leftPos = {2f/8f+offsetX, 4f/8f+offsetY};
-    public final static float[] rightPos = {6f/8f+offsetX, 4f/8f+offsetY};
-
-    public enum Position {
+    public enum ParkingPosition {
         LEFT,
-        RIGHT,
-        MID,
-        UNKNOWN
+        CENTER,
+        RIGHT
     }
 
-    public static Position position = Position.UNKNOWN;
-    //moves all rectangles right or left by amount. units are in ratio to monitor
+    // TOPLEFT anchor point for the bounding box
+    private static Point SLEEVE_TOPLEFT_ANCHOR_POINT = new Point(145, 168);
 
-    /*
-     * An enum to define the skystone position
-     */
-    public enum Stage {//color difference. greyscale
-        detection,//includes outlines
-        THRESHOLD,//b&w
-        RAW_IMAGE,//displays raw view
-    }
+    // Width and height for the bounding box
+    public static int REGION_WIDTH = 30;
+    public static int REGION_HEIGHT = 50;
 
-    private Stage stageToRenderToViewport = Stage.detection;
-    private final Stage[] stages = Stage.values();
+    // Lower and upper boundaries for colors
+    private static final Scalar
+            lower_yellow_bounds  = new Scalar(200, 200, 0, 255),
+            upper_yellow_bounds  = new Scalar(255, 255, 130, 255),
+            lower_cyan_bounds    = new Scalar(0, 200, 200, 255),
+            upper_cyan_bounds    = new Scalar(150, 255, 255, 255),
+            lower_magenta_bounds = new Scalar(170, 0, 170, 255),
+            upper_magenta_bounds = new Scalar(255, 60, 255, 255);
 
-    Mat thresholdMat = new Mat();
-    Mat yCbCrChan2Mat = new Mat();
-    Mat all = new Mat();
-    List<MatOfPoint> contoursList = new ArrayList<>();
+    // Color definitions
+    private final Scalar
+            YELLOW  = new Scalar(169,159,100,255),
+            CYAN    = new Scalar(15,161,186,255),
+            MAGENTA = new Scalar(185,74,168,255);
 
-    /*
-     * Points which actually define the sample region rectangles, derived from above values
-     *
-     * Example of how points A and B work to define a rectangle
-     *
-     *   ------------------------------------
-     *   | (0,0) Point A                    |
-     *   |                                  |
-     *   |                                  |
-     *   |                                  |
-     *   |                                  |
-     *   |                                  |
-     *   |                                  |
-     *   |                  Point B (70,50) |
-     *   ------------------------------------
-     *
-     */
+    // Percent and mat definitions
+    private double yelPercent, cyaPercent, magPercent;
+    private Mat yelMat = new Mat(), cyaMat = new Mat(), magMat = new Mat(), blurredMat = new Mat(), kernel = new Mat();
 
+    // Anchor point definitions
+    Point sleeve_pointA = new Point(
+            SLEEVE_TOPLEFT_ANCHOR_POINT.x,
+            SLEEVE_TOPLEFT_ANCHOR_POINT.y);
+    Point sleeve_pointB = new Point(
+            SLEEVE_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
+            SLEEVE_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
+
+    // Running variable storing the parking position
+    private volatile ParkingPosition position = ParkingPosition.LEFT;
 
     @Override
-    public void onViewportTapped()
-    {
-        /*
-         * Note that this method is invoked from the UI thread
-         * so whatever we do here, we must do quickly.
-         */
+    public Mat processFrame(Mat input) {
+        // Noise reduction
+        Imgproc.blur(input, blurredMat, new Size(5, 5));
+        blurredMat = blurredMat.submat(new Rect(sleeve_pointA, sleeve_pointB));
 
-        int currentStageNum = stageToRenderToViewport.ordinal();
+        // Apply Morphology
+        kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(3, 3));
+        Imgproc.morphologyEx(blurredMat, blurredMat, Imgproc.MORPH_CLOSE, kernel);
 
-        int nextStageNum = currentStageNum + 1;
+        // Gets channels from given source mat
+        Core.inRange(blurredMat, lower_yellow_bounds, upper_yellow_bounds, yelMat);
+        Core.inRange(blurredMat, lower_cyan_bounds, upper_cyan_bounds, cyaMat);
+        Core.inRange(blurredMat, lower_magenta_bounds, upper_magenta_bounds, magMat);
 
-        if(nextStageNum >= stages.length)
-        {
-            nextStageNum = 0;
+        // Gets color specific values
+        yelPercent = Core.countNonZero(yelMat);
+        cyaPercent = Core.countNonZero(cyaMat);
+        magPercent = Core.countNonZero(magMat);
+
+        // Calculates the highest amount of pixels being covered on each side
+        double maxPercent = Math.max(yelPercent, Math.max(cyaPercent, magPercent));
+
+        // Checks all percentages, will highlight bounding box in camera preview
+        // based on what color is being detected
+        if (maxPercent == yelPercent) {
+            position = ParkingPosition.LEFT;
+            Imgproc.rectangle(
+                    input,
+                    sleeve_pointA,
+                    sleeve_pointB,
+                    YELLOW,
+                    2
+            );
+        } else if (maxPercent == cyaPercent) {
+            position = ParkingPosition.CENTER;
+            Imgproc.rectangle(
+                    input,
+                    sleeve_pointA,
+                    sleeve_pointB,
+                    CYAN,
+                    2
+            );
+        } else if (maxPercent == magPercent) {
+            position = ParkingPosition.RIGHT;
+            Imgproc.rectangle(
+                    input,
+                    sleeve_pointA,
+                    sleeve_pointB,
+                    MAGENTA,
+                    2
+            );
         }
 
-        stageToRenderToViewport = stages[nextStageNum];
+        // Memory cleanup
+        magMat.release();
+        cyaMat.release();
+        yelMat.release();
+        blurredMat.release();
+        yelMat.release();
+        cyaMat.release();
+        magMat.release();
+        kernel.release();
+
+        return input;
     }
 
-    @Override
-    public Mat processFrame(Mat input)
-    {
-        contoursList.clear();
-        /*
-         * This pipeline finds the contours of yellow blobs such as the Gold Mineral
-         * from the Rover Ruckus game.
-         */
-
-        //color diff cb.
-        //lower cb = more blue = skystone = white
-        //higher cb = less blue = yellow stone = grey
-        Imgproc.cvtColor(input, yCbCrChan2Mat, Imgproc.COLOR_RGB2YCrCb);//converts rgb to ycrcb
-        Core.extractChannel(yCbCrChan2Mat, yCbCrChan2Mat, 2);//takes cb difference and stores
-
-        //b&w
-        Imgproc.threshold(yCbCrChan2Mat, thresholdMat, 102, 255, Imgproc.THRESH_BINARY_INV);
-
-        //outline/contour
-        Imgproc.findContours(thresholdMat, contoursList, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-        yCbCrChan2Mat.copyTo(all);//copies mat object
-        //Imgproc.drawContours(all, contoursList, -1, new Scalar(255, 0, 0), 3, 8);//draws blue contours
-
-
-        //get values from frame
-        double[] pixMid = thresholdMat.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
-        valMid = (int)pixMid[0];
-
-        double[] pixLeft = thresholdMat.get((int)(input.rows()* leftPos[1]), (int)(input.cols()* leftPos[0]));//gets value at circle
-        valLeft = (int)pixLeft[0];
-
-        double[] pixRight = thresholdMat.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
-        valRight = (int)pixRight[0];
-
-        //create three points
-        Point pointMid = new Point((int)(input.cols()* midPos[0]), (int)(input.rows()* midPos[1]));
-        Point pointLeft = new Point((int)(input.cols()* leftPos[0]), (int)(input.rows()* leftPos[1]));
-        Point pointRight = new Point((int)(input.cols()* rightPos[0]), (int)(input.rows()* rightPos[1]));
-
-        //draw circles on those points
-        Imgproc.circle(all, pointMid,5, new Scalar( 255, 0, 0 ),1 );//draws circle
-        Imgproc.circle(all, pointLeft,5, new Scalar( 255, 0, 0 ),1 );//draws circle
-        Imgproc.circle(all, pointRight,5, new Scalar( 255, 0, 0 ),1 );//draws circle
-
-        //draw 3 rectangles
-        Imgproc.rectangle(//1-3
-                all,
-                new Point(
-                        input.cols()*(leftPos[0]-rectWidth/2),
-                        input.rows()*(leftPos[1]-rectHeight/2)),
-                new Point(
-                        input.cols()*(leftPos[0]+rectWidth/2),
-                        input.rows()*(leftPos[1]+rectHeight/2)),
-                new Scalar(0, 255, 0), 3);
-        Imgproc.rectangle(//3-5
-                all,
-                new Point(
-                        input.cols()*(midPos[0]-rectWidth/2),
-                        input.rows()*(midPos[1]-rectHeight/2)),
-                new Point(
-                        input.cols()*(midPos[0]+rectWidth/2),
-                        input.rows()*(midPos[1]+rectHeight/2)),
-                new Scalar(0, 255, 0), 3);
-        Imgproc.rectangle(//5-7
-                all,
-                new Point(
-                        input.cols()*(rightPos[0]-rectWidth/2),
-                        input.rows()*(rightPos[1]-rectHeight/2)),
-                new Point(
-                        input.cols()*(rightPos[0]+rectWidth/2),
-                        input.rows()*(rightPos[1]+rectHeight/2)),
-                new Scalar(0, 255, 0), 3);
-
-        if(valLeft == 255) {
-            position = Position.LEFT;
-        } else if(valMid == 255) {
-            position = Position.MID;
-        } else if(valRight == 255) {
-            position = Position.RIGHT;
-        } else {
-            position = Position.UNKNOWN;
-        }
-        switch (stageToRenderToViewport)
-        {
-            case THRESHOLD:
-            {
-                return thresholdMat;
-            }
-
-            case detection:
-            {
-                return all;
-            }
-
-            case RAW_IMAGE:
-            {
-                return input;
-            }
-
-            default:
-            {
-                return input;
-            }
-        }
-
-    }
-
-    // create method that returns position
-    public Position getPosition() {
+    // Returns an enum being the current position where the robot will park
+    public ParkingPosition getPosition() {
         return position;
     }
 }

@@ -1,6 +1,4 @@
-package org.firstinspires.ftc.teamcode;
-
-import static org.firstinspires.ftc.teamcode.pipelines.colorDetectionPipeline.position;
+package archive;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -14,7 +12,8 @@ import org.firstinspires.ftc.robotcore.external.function.Continuation;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
-import org.firstinspires.ftc.teamcode.pipelines.colorDetectionPipeline;
+import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.R;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -38,8 +37,6 @@ public class arcadeDrive extends LinearOpMode
     float   leftPower, rightPower, turnLeft, turnRight;
     OpenCvCamera webcam;
 
-    colorDetectionPipeline pipeline = new colorDetectionPipeline();
-
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -60,7 +57,7 @@ public class arcadeDrive extends LinearOpMode
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 
         webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "web1"), cameraMonitorViewId);
-        webcam.setPipeline(pipeline);
+        //webcam.setPipeline(pipeline);
 
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
 
@@ -88,7 +85,7 @@ public class arcadeDrive extends LinearOpMode
                 msStuckDetectStop = 2500;
 
                 VuforiaLocalizer.Parameters vuforiaParams = new VuforiaLocalizer.Parameters(R.id.cameraMonitorViewId);
-                vuforiaParams.vuforiaLicenseKey = Constants.Vuforia.key;
+                vuforiaParams.vuforiaLicenseKey = Constants.Camera.key;
                 vuforiaParams.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
                 VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(vuforiaParams);
 
@@ -106,8 +103,10 @@ public class arcadeDrive extends LinearOpMode
 
         while (opModeIsActive()) {
 
+            /*
             telemetry.addData("pos", position);
             telemetry.update();
+             */
 
             leftPower =  gamepad1.left_stick_y;
             rightPower = gamepad1.left_stick_y;
