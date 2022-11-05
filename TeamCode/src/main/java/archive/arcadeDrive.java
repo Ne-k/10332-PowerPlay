@@ -1,25 +1,22 @@
-package org.firstinspires.ftc.teamcode;
+package archive;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
-import android.graphics.Bitmap;
-
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.function.Consumer;
-import org.firstinspires.ftc.robotcore.external.function.Continuation;
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
-import org.firstinspires.ftc.teamcode.pipelines.colorDetectionPipeline;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.R;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 
 
-@TeleOp(name="arcodeDrive", group="Linear Opmode")
+@Config
 public class arcadeDrive extends LinearOpMode
 {
 
@@ -27,11 +24,8 @@ public class arcadeDrive extends LinearOpMode
     float   leftPower, rightPower, turnLeft, turnRight;
     OpenCvCamera webcam;
 
-    colorDetectionPipeline pipeline = new colorDetectionPipeline(telemetry);
-
     @Override
-    public void runOpMode() throws InterruptedException
-    {
+    public void runOpMode() throws InterruptedException {
 
         leftMotor = hardwareMap.dcMotor.get(Constants.Motors.left);
         rightMotor = hardwareMap.dcMotor.get(Constants.Motors.right);
@@ -48,8 +42,9 @@ public class arcadeDrive extends LinearOpMode
         waitForStart();
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Im watching you"), cameraMonitorViewId);
-        webcam.setPipeline(new colorDetectionPipeline(telemetry));
+
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "web1"), cameraMonitorViewId);
+        //webcam.setPipeline(pipeline);
 
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
 
@@ -74,6 +69,15 @@ public class arcadeDrive extends LinearOpMode
 
                 webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
 
+                msStuckDetectStop = 2500;
+
+                VuforiaLocalizer.Parameters vuforiaParams = new VuforiaLocalizer.Parameters(R.id.cameraMonitorViewId);
+                vuforiaParams.vuforiaLicenseKey = Constants.Camera.vuforiaKey;
+                vuforiaParams.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
+                VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(vuforiaParams);
+
+                FtcDashboard.getInstance().startCameraStream(vuforia, 10);
+
 
             }
 
@@ -86,18 +90,16 @@ public class arcadeDrive extends LinearOpMode
 
         while (opModeIsActive()) {
 
+            /*
+            telemetry.addData("pos", position);
+            telemetry.update();
+             */
 
-
-                leftPower =  gamepad1.left_stick_y;
+            leftPower =  gamepad1.left_stick_y;
             rightPower = gamepad1.left_stick_y;
 
             turnLeft = gamepad1.right_stick_x * -1;
             turnRight = gamepad1.right_stick_x * 1;
-
-
-           // leftMotor.setPower(Range.clip(leftPower, -1.0, 1.0));
-           // rightMotor.setPower(Range.clip(rightPower, -1.0, 1.0));
-
 
             leftMotor.setPower(leftPower);
             rightMotor.setPower(rightPower);
@@ -105,17 +107,10 @@ public class arcadeDrive extends LinearOpMode
             leftMotor.setPower(turnLeft);
             rightMotor.setPower(turnRight);
 
-            /*
-             telemetry.addData("Mode", "running");
-            telemetry.addData("stick", "  y=" + yValue + "  x=" + xValue);
-            telemetry.addData("power", "  left=" + leftPower + "  right=" + rightPower);
-            telemetry.update();
-             */
 
             idle();
         }
+
     }
-
-
 
 }
