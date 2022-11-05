@@ -1,35 +1,22 @@
 package archive;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.vuforia.HINT;
-import com.vuforia.Vuforia;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.function.Consumer;
-import org.firstinspires.ftc.robotcore.external.function.Continuation;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.R;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvInternalCamera2;
-import org.openftc.easyopencv.OpenCvPipeline;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 
 
-@TeleOp(name="arcodeDrive", group="Linear Opmode")
+@Config
 public class arcadeDrive extends LinearOpMode
 {
 
@@ -85,7 +72,7 @@ public class arcadeDrive extends LinearOpMode
                 msStuckDetectStop = 2500;
 
                 VuforiaLocalizer.Parameters vuforiaParams = new VuforiaLocalizer.Parameters(R.id.cameraMonitorViewId);
-                vuforiaParams.vuforiaLicenseKey = Constants.Camera.key;
+                vuforiaParams.vuforiaLicenseKey = Constants.Camera.vuforiaKey;
                 vuforiaParams.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
                 VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(vuforiaParams);
 
