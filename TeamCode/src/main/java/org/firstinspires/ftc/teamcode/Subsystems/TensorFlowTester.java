@@ -73,10 +73,6 @@ public class TensorFlowTester extends LinearOpMode {
         initVuforia();
         initTfod();
 
-        /**
-         * Activate TensorFlow Object Detection before we wait for the start command.
-         * Do it here so that the Camera Stream window will have the TensorFlow annotations visible.
-         **/
         if (tfod != null) {
             tfod.activate();
 
@@ -89,7 +85,6 @@ public class TensorFlowTester extends LinearOpMode {
             tfod.setZoom(1.0, 16.0/9.0);
         }
 
-        /** Wait for the game to begin */
         telemetry.addData(">", "Press Play to start op mode");
         telemetry.update();
         waitForStart();
