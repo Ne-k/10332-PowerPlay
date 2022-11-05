@@ -1,5 +1,5 @@
 package org.firstinspires.ftc.teamcode.pipelines;
-
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -31,18 +31,18 @@ public class colorDetectionPipeline extends OpenCvPipeline {
 
     // Lower and upper boundaries for colors
     private static final Scalar
-            lower_yellow_bounds  = new Scalar(200, 200, 0, 255),
-            upper_yellow_bounds  = new Scalar(255, 255, 130, 255),
-            lower_cyan_bounds    = new Scalar(0, 200, 200, 255),
-            upper_cyan_bounds    = new Scalar(150, 255, 255, 255),
+            lower_yellow_bounds = new Scalar(200, 200, 0, 255),
+            upper_yellow_bounds = new Scalar(255, 255, 130, 255),
+            lower_cyan_bounds = new Scalar(0, 200, 200, 255),
+            upper_cyan_bounds = new Scalar(150, 255, 255, 255),
             lower_magenta_bounds = new Scalar(170, 0, 170, 255),
             upper_magenta_bounds = new Scalar(255, 60, 255, 255);
 
     // Color definitions
     private final Scalar
-            YELLOW  = new Scalar(169,159,100,255),
-            CYAN    = new Scalar(15,161,186,255),
-            MAGENTA = new Scalar(185,74,168,255);
+            YELLOW = new Scalar(169, 159, 100, 255),
+            CYAN = new Scalar(15, 161, 186, 255),
+            MAGENTA = new Scalar(185, 74, 168, 255);
 
     // Percent and mat definitions
     private double yelPercent, cyaPercent, magPercent;
