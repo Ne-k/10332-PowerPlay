@@ -11,15 +11,15 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.pipelines.AprilTagDetectionPipeline;
-import org.firstinspires.ftc.teamcode.pipelines.colorDetectionPipeline;
+import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import java.util.ArrayList;
+
 @TeleOp(name = "MechDrive", group = "Linear opmode")
 public class Mecanum extends LinearOpMode {
-
-    colorDetectionPipeline pipeline;
 
     //get motors
     DcMotor leftFront, leftRear, rightFront, rightRear, elevatorMotor;
@@ -65,6 +65,8 @@ public class Mecanum extends LinearOpMode {
         servo.resetDeviceConfigurationForOpMode();
         servo.setDirection(Servo.Direction.FORWARD);
 
+        ArrayList<AprilTagDetection> detections = AprilTagDetectionPipeline.getDetectionsUpdate();
+
         final double FEET_PER_METER = 3.28084;
 
         // Lens intrinsics
@@ -88,15 +90,13 @@ public class Mecanum extends LinearOpMode {
 
 
 
-        pipeline = new colorDetectionPipeline();
-
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, webcamName), cameraMonitorViewId);
 
         aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
 
 
-        camera.setPipeline(pipeline);
+        camera.setPipeline(aprilTagDetectionPipeline);
 
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
@@ -114,6 +114,7 @@ public class Mecanum extends LinearOpMode {
 
 
         waitForStart();
+        telemetry.setMsTransmissionInterval(50);
 
         if (isStopRequested()) return;
 
@@ -131,10 +132,32 @@ public class Mecanum extends LinearOpMode {
             double frontRightPower = (y - x - rx) / denominator;
             double backRightPower = (y + x - rx) / denominator;
 
+            // if no april tag detection
+            if (detections.size() == 0) {
+                numFramesWithoutDetection++;
+                if (numFramesWithoutDetection > THRESHOLD_NUM_FRAMES_NO_DETECTION_BEFORE_LOW_DECIMATION) {
+                    aprilTagDetectionPipeline.setDecimation(DECIMATION_LOW);
+                }
 
-            telemetry.addData("Motor position", elevatorMotor.getCurrentPosition());
-            telemetry.addData("ROTATION: ", pipeline.getPosition());
-            telemetry.update();
+            } else {
+                numFramesWithoutDetection = 0;
+                if (detections.get(0).pose.z < THRESHOLD_HIGH_DECIMATION_RANGE_METERS) {
+                    aprilTagDetectionPipeline.setDecimation(DECIMATION_HIGH);
+                }
+
+                telemetry.addData("Tag ID", detections.get(0).id);
+                telemetry.addData("Tag X", detections.get(0).pose.x);
+                telemetry.addData("Tag Y", detections.get(0).pose.y);
+                telemetry.addData("Tag Z", detections.get(0).pose.z);
+                telemetry.addData("Tag Yaw", detections.get(0).pose.yaw);
+                telemetry.addData("Tag Pitch", detections.get(0).pose.pitch);
+                telemetry.addData("Tag Roll", detections.get(0).pose.roll);
+
+
+            }
+
+            // If the target is within 1 meter, turn on high decimation to
+            // increase the frame rate
 
 
             if(gamepad1.a) {
@@ -164,6 +187,8 @@ public class Mecanum extends LinearOpMode {
             leftRear.setPower(backLeftPower * 0.5);
             rightFront.setPower(frontRightPower * 0.5);
             rightRear.setPower(backRightPower * 0.5);
+
+            telemetry.update();
         }
 
     }

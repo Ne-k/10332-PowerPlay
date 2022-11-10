@@ -43,8 +43,8 @@ public class AprilTagDetectionPipeline extends OpenCvPipeline
     private Mat grey = new Mat();
     private ArrayList<AprilTagDetection> detections = new ArrayList<>();
 
-    private ArrayList<AprilTagDetection> detectionsUpdate = new ArrayList<>();
-    private final Object detectionsUpdateSync = new Object();
+    private static ArrayList<AprilTagDetection> detectionsUpdate = new ArrayList<>();
+    private static final Object detectionsUpdateSync = new Object();
 
     Mat cameraMatrix;
 
@@ -148,7 +148,7 @@ public class AprilTagDetectionPipeline extends OpenCvPipeline
         return detections;
     }
 
-    public ArrayList<AprilTagDetection> getDetectionsUpdate()
+    public static ArrayList<AprilTagDetection> getDetectionsUpdate()
     {
         synchronized (detectionsUpdateSync)
         {
