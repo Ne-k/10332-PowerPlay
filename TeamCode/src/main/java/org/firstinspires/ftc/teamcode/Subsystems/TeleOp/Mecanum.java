@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.AprilTagDetectionPipeline;
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.pipelines.AprilTagDetectionPipeline;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -131,33 +131,6 @@ public class Mecanum extends LinearOpMode {
             double backLeftPower = (y - x + rx) / denominator;
             double frontRightPower = (y - x - rx) / denominator;
             double backRightPower = (y + x - rx) / denominator;
-
-            // if no april tag detection
-            if (detections.size() == 0) {
-                numFramesWithoutDetection++;
-                if (numFramesWithoutDetection > THRESHOLD_NUM_FRAMES_NO_DETECTION_BEFORE_LOW_DECIMATION) {
-                    aprilTagDetectionPipeline.setDecimation(DECIMATION_LOW);
-                }
-
-            } else {
-                numFramesWithoutDetection = 0;
-                if (detections.get(0).pose.z < THRESHOLD_HIGH_DECIMATION_RANGE_METERS) {
-                    aprilTagDetectionPipeline.setDecimation(DECIMATION_HIGH);
-                }
-
-                telemetry.addData("Tag ID", detections.get(0).id);
-                telemetry.addData("Tag X", detections.get(0).pose.x);
-                telemetry.addData("Tag Y", detections.get(0).pose.y);
-                telemetry.addData("Tag Z", detections.get(0).pose.z);
-                telemetry.addData("Tag Yaw", detections.get(0).pose.yaw);
-                telemetry.addData("Tag Pitch", detections.get(0).pose.pitch);
-                telemetry.addData("Tag Roll", detections.get(0).pose.roll);
-
-
-            }
-
-            // If the target is within 1 meter, turn on high decimation to
-            // increase the frame rate
 
 
             if(gamepad1.a) {
