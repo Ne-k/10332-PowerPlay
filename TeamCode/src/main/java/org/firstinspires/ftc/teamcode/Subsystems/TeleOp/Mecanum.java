@@ -21,21 +21,9 @@ import java.util.ArrayList;
 @TeleOp(name = "MechDrive", group = "Linear opmode")
 public class Mecanum extends LinearOpMode {
 
-    //get motors
     DcMotor leftFront, leftRear, rightFront, rightRear, elevatorMotor;
-    public double frontLeft;
-    public double frontRight;
-    public double rearLeft;
-    public double rearRight;
     private boolean forward = true;
 
-    /*
-
-    DcMotor LFMotor = hardwareMap.dcMotor.get("leftFront");
-    DcMotor LBMotor = hardwareMap.dcMotor.get("leftRear");
-    DcMotor RFMotor = hardwareMap.dcMotor.get("rightFront");
-    DcMotor RBMotor = hardwareMap.dcMotor.get("rightRear");
-     */
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -64,54 +52,6 @@ public class Mecanum extends LinearOpMode {
 
         servo.resetDeviceConfigurationForOpMode();
         servo.setDirection(Servo.Direction.FORWARD);
-
-        ArrayList<AprilTagDetection> detections = AprilTagDetectionPipeline.getDetectionsUpdate();
-
-        final double FEET_PER_METER = 3.28084;
-
-        // Lens intrinsics
-        // UNITS ARE PIXELS
-        // NOTE: this calibration is for the C920 webcam at 800x448.
-        // You will need to do your own calibration for other configurations!
-        double fx = 578.272;
-        double fy = 578.272;
-        double cx = 402.145;
-        double cy = 221.506;
-
-        // UNITS ARE METERS
-        double tagsize = 0.166;
-
-        int numFramesWithoutDetection = 0;
-
-        final float DECIMATION_HIGH = 3;
-        final float DECIMATION_LOW = 2;
-        final float THRESHOLD_HIGH_DECIMATION_RANGE_METERS = 1.0f;
-        final int THRESHOLD_NUM_FRAMES_NO_DETECTION_BEFORE_LOW_DECIMATION = 4;
-
-
-
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, webcamName), cameraMonitorViewId);
-
-        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
-
-
-        camera.setPipeline(aprilTagDetectionPipeline);
-
-
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-                                         @Override
-                                         public void onOpened() {
-                                             camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
-                                         }
-
-                                         @Override
-                                         public void onError(int errorCode) {
-
-                                         }
-                                     });
-
-
 
         waitForStart();
         telemetry.setMsTransmissionInterval(50);
