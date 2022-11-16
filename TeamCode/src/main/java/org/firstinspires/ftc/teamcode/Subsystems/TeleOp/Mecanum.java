@@ -21,7 +21,7 @@ import java.util.ArrayList;
 @TeleOp(name = "MechDrive", group = "Linear opmode")
 public class Mecanum extends LinearOpMode {
 
-    DcMotor leftFront, leftRear, rightFront, rightRear, elevatorMotor;
+    DcMotor leftFront, leftRear, rightFront, rightRear, elevatorMotor, intakeLeftMotor, intakeRightMotor;
     private boolean forward = true;
 
 
@@ -34,6 +34,10 @@ public class Mecanum extends LinearOpMode {
         rightFront = hardwareMap.dcMotor.get(Constants.Motors.rf);
         rightRear = hardwareMap.dcMotor.get(Constants.Motors.rr);
         elevatorMotor = hardwareMap.dcMotor.get(Constants.Motors.elevatorMotor);
+
+        intakeLeftMotor = hardwareMap.dcMotor.get(Constants.Motors.intakeLeftMotor);
+        intakeRightMotor = hardwareMap.dcMotor.get(Constants.Motors.intakeRightMotor);
+
         Servo servo = hardwareMap.servo.get(Constants.Servos.intake);
 
         elevatorMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -47,11 +51,15 @@ public class Mecanum extends LinearOpMode {
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        intakeLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        intakeRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+
         rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        servo.setDirection(Servo.Direction.REVERSE);
 
         servo.resetDeviceConfigurationForOpMode();
-        servo.setDirection(Servo.Direction.FORWARD);
 
         waitForStart();
         telemetry.setMsTransmissionInterval(50);
@@ -73,17 +81,24 @@ public class Mecanum extends LinearOpMode {
             double backRightPower = (y + x - rx) / denominator;
 
 
-            if(gamepad1.a) {
-                if(forward) {
-                    forward = false;
-                    servo.setPosition(1);
+            if(gamepad1.right_bumper) {
 
-                } else {
-                    forward = true;
-                    servo.setDirection(Servo.Direction.REVERSE);
-                    servo.setPosition(-1);
 
-                }
+                intakeLeftMotor.setPower(0.5);
+                intakeRightMotor.setPower(0.5);
+
+                servo.setPosition(1);
+
+            } else if(gamepad1.left_bumper) {
+                intakeLeftMotor.setPower(-0.5);
+                intakeRightMotor.setPower(-0.5);
+                servo.setDirection(Servo.Direction.FORWARD);
+
+                servo.setPosition(-1);
+            } else if(gamepad1.a) {
+                servo.setPosition(0.5);
+                intakeLeftMotor.setPower(0);
+                intakeRightMotor.setPower(0);
             }
 
 
@@ -95,6 +110,8 @@ public class Mecanum extends LinearOpMode {
                elevatorMotor.setTargetPosition(0);
                elevatorMotor.setPower(.65);
            }
+
+
 
             leftFront.setPower(frontLeftPower * 0.5);
             leftRear.setPower(backLeftPower * 0.5);

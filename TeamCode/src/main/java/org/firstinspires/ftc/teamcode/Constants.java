@@ -14,6 +14,8 @@ public class Constants {
         public static String rf = "rightFront";
 
         public static String elevatorMotor = "elevatorMotor";
+        public static String intakeLeftMotor = "intakeLeftMotor";
+        public static String intakeRightMotor = "intakeRightMotor";
     }
 
 
