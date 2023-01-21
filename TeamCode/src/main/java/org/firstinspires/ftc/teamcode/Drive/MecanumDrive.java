@@ -18,7 +18,7 @@ public class MecanumDrive extends LinearOpMode {
         }
     }
     //get motors
-    DcMotor leftFront, leftRear, rightFront, rightRear, extendMotor, liftMotor, grabber180;
+    DcMotor leftFront, leftRear, rightFront, rightRear, extendMotor, liftMotor, grabber180, slideM1, slideM2;
     Servo rotServo, grabServo;
 
     /*
@@ -37,6 +37,23 @@ public class MecanumDrive extends LinearOpMode {
         rightRear = hardwareMap.dcMotor.get(Constants.Motors.rr);
         extendMotor = hardwareMap.dcMotor.get(Constants.Motors.extendMotor);
         grabber180 = hardwareMap.dcMotor.get(Constants.Motors.grabber180);
+
+        slideM1 = hardwareMap.dcMotor.get(Constants.Motors.sM1);
+        slideM2 = hardwareMap.dcMotor.get(Constants.Motors.sM2);
+
+
+        slideM1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slideM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slideM1.setTargetPosition(0);
+        slideM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        slideM2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slideM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slideM2.setTargetPosition(0);
+        slideM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        slideM1.setDirection(DcMotorSimple.Direction.FORWARD);
+        slideM2.setDirection(DcMotorSimple.Direction.FORWARD);
 
         extendMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         extendMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -87,13 +104,18 @@ public class MecanumDrive extends LinearOpMode {
             telemetry.update();
 
             if(gamepad1.x) {
-                extendMotor.setTargetPosition(0);
+                extendMotor.setTargetPosition(1);
                 extendMotor.setPower(0.5);
             } else if(gamepad1.a){
+                extendMotor.setTargetPosition(-288);
+                extendMotor.setPower(.5);
 
-            } else if(gamepad1.b) {
+            }
 
-            } else if(gamepad1.left_bumper) {
+            if(gamepad1.left_bumper) {
+                grabber180.setTargetPosition(-160);
+                grabber180.setPower(.1);
+                setTimeout(500);
                 grabServo.setPosition(0);
                 setTimeout(1000);
                 grabServo.setPosition(2);
@@ -101,7 +123,7 @@ public class MecanumDrive extends LinearOpMode {
                 grabber180.setTargetPosition(0);
                 grabber180.setPower(0.1);
 
-                if(grabber180.getCurrentPosition() >= 0) {
+                while(grabber180.getCurrentPosition() >= 0) {
                     rotServo.setPosition(0.05);
                     setTimeout(1000);
                     grabber180.setTargetPosition(47);
@@ -111,10 +133,30 @@ public class MecanumDrive extends LinearOpMode {
                     setTimeout(2000);
                     grabber180.setTargetPosition(0);
                 }
+
+//                if(grabber180.getCurrentPosition() >= 0) {
+//                    rotServo.setPosition(0.05);
+//                    setTimeout(1000);
+//                    grabber180.setTargetPosition(47);
+//                    grabber180.setPower(0.1);
+//                    setTimeout(500);
+//                    grabServo.setPosition(0.1);
+//                    setTimeout(2000);
+//                   grabber180.setTargetPosition(0);
+//                }
             }
-// 0 mid
-            // 47 slide
-            // -162 down
+            if(gamepad1.start) {
+                slideM1.setTargetPosition(-230);
+                slideM2.setTargetPosition(607);
+                slideM1.setPower(.7);
+                slideM2.setPower(-7);
+            } else if(gamepad1.back ) {
+                slideM1.setTargetPosition(74);
+                slideM2.setTargetPosition(-106);
+                slideM1.setPower(-.2);
+                slideM2.setPower(.2);
+            }
+
             leftFront.setPower(frontLeftPower * 0.5);
             leftRear.setPower(backLeftPower * 0.5);
             rightFront.setPower(frontRightPower * 0.5);

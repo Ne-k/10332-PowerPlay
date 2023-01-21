@@ -8,6 +8,10 @@ public class Constants {
         public static String rr = "rightRear";
         public static String rf = "rightFront";
 
+        public static String sM1 = "slideM1";
+
+        public static String sM2 = "slideM2";
+
         public static String extendMotor = "leftOutGb";
 
         public static String grabber180 = "grabber180";
