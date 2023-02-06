@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 public class Constants {
+
+    public static String webcamName = "Webcam 1";
     public static class Motors {
 
         public static String lf = "leftFront";
