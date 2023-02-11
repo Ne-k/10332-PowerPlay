@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.command.CommandOpMode;
+import com.arcrobotics.ftclib.command.Robot;
 import com.arcrobotics.ftclib.command.button.Button;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -16,10 +17,10 @@ import org.firstinspires.ftc.teamcode.Subsystem.OuttakeSubsustem;
 public class RobotContainer extends CommandOpMode {
     private Button m_grabButton, m_releaseButton;
     private GamepadEx gpEx1, gpEx2;
-
     @Override
     public void initialize() {
         gpEx1 = new GamepadEx(gamepad1);
+        gpEx2 = new GamepadEx(gamepad2);
 
 
         Grabber180Subsystem grabberMotorSubsystem = new Grabber180Subsystem();
@@ -33,9 +34,22 @@ public class RobotContainer extends CommandOpMode {
         MecanumCommand mecanumCommand = new MecanumCommand(mecanum, gpEx1);
 
         register(mecanum);
+        register(grabberMotorSubsystem);
+        register(grabberSubsystem);
+        register(outtakeSubsustem);
+
         mecanum.setDefaultCommand(mecanumCommand);
+
 
     }
 
-
+    @Override
+    public void runOpMode() throws InterruptedException {
+        initialize();
+        waitForStart();
+        while (opModeIsActive()) {
+            run();
+        }
+    }
 }
+

@@ -48,7 +48,7 @@ public class Grabber180Motor extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return grabberMotor.isAtPosition();
+        return false;
     }
 
 }
