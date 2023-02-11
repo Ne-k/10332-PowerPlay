@@ -44,14 +44,6 @@ final class DriveView {
     private final MecanumDrive md;
     private final TankDrive td;
 
-    private static RawEncoder unwrap(Encoder e) {
-        if (e instanceof OverflowEncoder) {
-            return ((OverflowEncoder) e).encoder;
-        } else {
-            return (RawEncoder) e;
-        }
-    }
-
     public DriveView(HardwareMap hardwareMap) {
         final Localizer localizer;
         if (TuningOpModes.DRIVE_CLASS.equals(MecanumDrive.class)) {
@@ -62,7 +54,8 @@ final class DriveView {
             minAccel = MecanumDrive.MIN_PROFILE_ACCEL;
             maxAccel = MecanumDrive.MAX_PROFILE_ACCEL;
 
-            md = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0)); td = null;
+            md = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+            td = null;
             leftMotors = Arrays.asList(md.leftFront, md.leftBack);
             rightMotors = Arrays.asList(md.rightFront, md.rightBack);
             imu = md.imu;
@@ -77,7 +70,8 @@ final class DriveView {
             minAccel = TankDrive.MIN_PROFILE_ACCEL;
             maxAccel = TankDrive.MAX_PROFILE_ACCEL;
 
-            td = new TankDrive(hardwareMap, new Pose2d(0, 0, 0)); md = null;
+            td = new TankDrive(hardwareMap, new Pose2d(0, 0, 0));
+            md = null;
             leftMotors = td.leftMotors;
             rightMotors = td.rightMotors;
             imu = td.imu;
@@ -141,6 +135,14 @@ final class DriveView {
             if (c1 != c2) {
                 throw new IllegalArgumentException("all encoders must be attached to the same hub");
             }
+        }
+    }
+
+    private static RawEncoder unwrap(Encoder e) {
+        if (e instanceof OverflowEncoder) {
+            return ((OverflowEncoder) e).encoder;
+        } else {
+            return (RawEncoder) e;
         }
     }
 

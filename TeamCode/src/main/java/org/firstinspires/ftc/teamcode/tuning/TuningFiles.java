@@ -28,18 +28,6 @@ public final class TuningFiles {
 
     private static WebHandlerManager whm; // guarded by ioLock
 
-    public enum FileType {
-        FORWARD_RAMP("forward-ramp"),
-        ANGULAR_RAMP("angular-ramp"),
-        ACCEL("accel");
-
-        public final String name;
-
-        FileType(String s) {
-            name = s;
-        }
-    }
-
     private TuningFiles() {
 
     }
@@ -129,7 +117,6 @@ public final class TuningFiles {
         }
     }
 
-
     private static WebHandler newLatestFileHandler(File dir) {
         return session -> {
             File[] files = dir.listFiles();
@@ -170,5 +157,17 @@ public final class TuningFiles {
                         NanoHTTPD.MIME_PLAINTEXT, "");
             }
         };
+    }
+
+    public enum FileType {
+        FORWARD_RAMP("forward-ramp"),
+        ANGULAR_RAMP("angular-ramp"),
+        ACCEL("accel");
+
+        public final String name;
+
+        FileType(String s) {
+            name = s;
+        }
     }
 }

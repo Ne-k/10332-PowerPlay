@@ -4,30 +4,24 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.pipelines.AprilTagDetectionPipeline;
-import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
 
-import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Autonomous(name = "Straight", group = "Linear opmode")
 public class Straight extends LinearOpMode {
+    private static final ScheduledExecutorService scheduledThreadPoolExecutor = Executors.newScheduledThreadPool(10);
     DcMotor leftFront, leftRear, rightFront, rightRear, extendMotor, liftMotor, grabber180, slideM1, slideM2;
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
-    private static final ScheduledExecutorService scheduledThreadPoolExecutor = Executors.newScheduledThreadPool(10);
 
     private static void setTimeout(int ms) {
         try {
 
-           Thread.sleep(ms);
+            Thread.sleep(ms);
         } catch (Exception e) {
             throw new RuntimeException();
         }
@@ -62,7 +56,7 @@ public class Straight extends LinearOpMode {
         rightRear = hardwareMap.dcMotor.get(Constants.Motors.rr);
         extendMotor = hardwareMap.dcMotor.get(Constants.Motors.extendMotor);
 
-        while(opModeIsActive()) {
+        while (opModeIsActive()) {
             driveForward();
 
         }

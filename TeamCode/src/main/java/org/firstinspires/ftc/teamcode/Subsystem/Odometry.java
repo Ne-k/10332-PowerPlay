@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Subsystem;
 
-import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.geometry.Pose2d;
 
 public abstract class Odometry {

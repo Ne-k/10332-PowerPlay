@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.command.CommandOpMode;
-import com.arcrobotics.ftclib.command.Robot;
 import com.arcrobotics.ftclib.command.button.Button;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -17,6 +16,7 @@ import org.firstinspires.ftc.teamcode.Subsystem.OuttakeSubsustem;
 public class RobotContainer extends CommandOpMode {
     private Button m_grabButton, m_releaseButton;
     private GamepadEx gpEx1, gpEx2;
+
     @Override
     public void initialize() {
         gpEx1 = new GamepadEx(gamepad1);

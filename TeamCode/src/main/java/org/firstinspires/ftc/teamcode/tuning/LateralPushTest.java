@@ -10,9 +10,9 @@ public final class LateralPushTest extends LinearOpMode {
     private static double lateralSum(MecanumDrive.DriveLocalizer dl) {
         return 0.25 * (
                 -dl.leftFront.getPositionAndVelocity().position
-                +dl.leftRear.getPositionAndVelocity().position
-                -dl.rightRear.getPositionAndVelocity().position
-                +dl.rightFront.getPositionAndVelocity().position);
+                        + dl.leftRear.getPositionAndVelocity().position
+                        - dl.rightRear.getPositionAndVelocity().position
+                        + dl.rightFront.getPositionAndVelocity().position);
     }
 
     @Override

@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.Constants;
 
 public class OuttakeSubsustem extends SubsystemBase {
     Motor outtakeMotor;
+
     public OuttakeSubsustem() {
         outtakeMotor = new Motor(hardwareMap, Constants.Motors.extendMotor);
         outtakeMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);

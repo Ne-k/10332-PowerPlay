@@ -7,6 +7,19 @@ public final class OverflowEncoder implements Encoder {
     // encoder velocities are sent as 16-bit ints
     // by the time they reach here, they are widened into an int and possibly negated
     private static final int CPS_STEP = 0x10000;
+    public final RawEncoder encoder;
+    private final ElapsedTime lastUpdate;
+    private final RollingThreeMedian velEstimate;
+    private int lastPosition;
+
+    public OverflowEncoder(RawEncoder e) {
+        encoder = e;
+
+        lastPosition = e.getPositionAndVelocity().position;
+        lastUpdate = new ElapsedTime();
+
+        velEstimate = new RollingThreeMedian();
+    }
 
     private static int inverseOverflow(int input, double estimate) {
         // convert to uint16
@@ -17,22 +30,6 @@ public final class OverflowEncoder implements Encoder {
         // estimate-based correction: it finds the nearest multiple of 5 to correct the upper bits by
         real += Math.round((estimate - real) / (5 * CPS_STEP)) * 5 * CPS_STEP;
         return real;
-    }
-
-    public final RawEncoder encoder;
-
-    private int lastPosition;
-    private final ElapsedTime lastUpdate;
-
-    private final RollingThreeMedian velEstimate;
-
-    public OverflowEncoder(RawEncoder e) {
-        encoder = e;
-
-        lastPosition = e.getPositionAndVelocity().position;
-        lastUpdate = new ElapsedTime();
-
-        velEstimate = new RollingThreeMedian();
     }
 
     @Override

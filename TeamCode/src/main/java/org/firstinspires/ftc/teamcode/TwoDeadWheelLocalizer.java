@@ -21,11 +21,9 @@ public final class TwoDeadWheelLocalizer implements Localizer {
 
     public final Encoder par, perp;
     public final BNO055Wrapper imu;
-
+    private final double inPerTick;
     private int lastParPos, lastPerpPos;
     private Rotation2d lastHeading;
-
-    private final double inPerTick;
 
     public TwoDeadWheelLocalizer(HardwareMap hardwareMap, BNO055Wrapper imu, double inPerTick) {
         par = new RawEncoder(hardwareMap.get(DcMotorEx.class, "par"));
@@ -52,16 +50,16 @@ public final class TwoDeadWheelLocalizer implements Localizer {
 
         Twist2dIncrDual<Time> twistIncr = new Twist2dIncrDual<>(
                 new Vector2dDual<>(
-                        new DualNum<Time>(new double[] {
+                        new DualNum<Time>(new double[]{
                                 parPosDelta - PAR_Y_TICKS * headingDelta,
                                 parPosVel.velocity - PAR_Y_TICKS * headingVel,
                         }).times(inPerTick),
-                        new DualNum<Time>(new double[] {
+                        new DualNum<Time>(new double[]{
                                 perpPosDelta - PERP_X_TICKS * headingDelta,
                                 perpPosVel.velocity - PERP_X_TICKS * headingVel,
                         }).times(inPerTick)
                 ),
-                new DualNum<>(new double[] {
+                new DualNum<>(new double[]{
                         headingDelta,
                         headingVel,
                 })

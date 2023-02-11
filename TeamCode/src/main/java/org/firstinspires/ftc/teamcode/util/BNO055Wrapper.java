@@ -30,40 +30,13 @@ public final class BNO055Wrapper {
     }
 
     /**
-     * A direction for an axis to be remapped to
-     */
-    public enum AxisDirection {
-        POS_X, NEG_X, POS_Y, NEG_Y, POS_Z, NEG_Z
-    }
-
-    /**
-     * IMU axes signs in the order XYZ (after remapping).
-     */
-    public enum AxesSigns {
-        PPP(0b000),
-        PPN(0b001),
-        PNP(0b010),
-        PNN(0b011),
-        NPP(0b100),
-        NPN(0b101),
-        NNP(0b110),
-        NNN(0b111);
-
-        public final int bVal;
-
-        AxesSigns(int bVal) {
-            this.bVal = bVal;
-        }
-    }
-
-    /**
      * Remap BNO055 IMU axes and signs. For reference, the default order is {@link AxesOrder#XYZ}.
      * Call after {@link BNO055IMU#initialize(BNO055IMU.Parameters)}. Although this isn't
      * mentioned in the datasheet, the axes order appears to affect the onboard sensor fusion.
-     *
+     * <p>
      * Adapted from <a href="https://ftcforum.firstinspires.org/forum/ftc-technology/53812-mounting-the-revhub-vertically?p=56587#post56587">this post</a>.
      * Reference the <a href="https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bno055-ds000.pdf">BNO055 Datasheet</a> for details.
-     *
+     * <p>
      * NOTE: Remapping axes can be somewhat confusing. Instead, use {@link #remapZAxis}, if
      * appropriate.
      *
@@ -143,6 +116,33 @@ public final class BNO055Wrapper {
             case NEG_Z:
                 swapThenFlipAxes(AxesOrder.XYZ, AxesSigns.PNN);
                 break;
+        }
+    }
+
+    /**
+     * A direction for an axis to be remapped to
+     */
+    public enum AxisDirection {
+        POS_X, NEG_X, POS_Y, NEG_Y, POS_Z, NEG_Z
+    }
+
+    /**
+     * IMU axes signs in the order XYZ (after remapping).
+     */
+    public enum AxesSigns {
+        PPP(0b000),
+        PPN(0b001),
+        PNP(0b010),
+        PNN(0b011),
+        NPP(0b100),
+        NPN(0b101),
+        NNP(0b110),
+        NNN(0b111);
+
+        public final int bVal;
+
+        AxesSigns(int bVal) {
+            this.bVal = bVal;
         }
     }
 }

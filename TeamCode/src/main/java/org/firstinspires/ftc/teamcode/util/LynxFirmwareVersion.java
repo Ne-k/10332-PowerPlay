@@ -13,8 +13,17 @@ import java.util.Map;
  */
 public final class LynxFirmwareVersion implements Comparable<LynxFirmwareVersion> {
 
+    public final int major, minor, eng;
+
+    public LynxFirmwareVersion(int major, int minor, int eng) {
+        this.major = major;
+        this.minor = minor;
+        this.eng = eng;
+    }
+
     /**
      * Ensure all of the Lynx modules attached to the robot satisfy the minimum requirement.
+     *
      * @param hardwareMap hardware map containing Lynx modules
      */
     public static void throwIfAnyModulesBelowVersion(HardwareMap hardwareMap, LynxFirmwareVersion minVersion) {
@@ -65,14 +74,6 @@ public final class LynxFirmwareVersion implements Comparable<LynxFirmwareVersion
         } catch (NumberFormatException e) {
             return null;
         }
-    }
-
-    public final int major, minor, eng;
-
-    public LynxFirmwareVersion(int major, int minor, int eng) {
-        this.major = major;
-        this.minor = minor;
-        this.eng = eng;
     }
 
     @Override

@@ -16,21 +16,11 @@ public class GrabberServoCommand extends CommandBase {
         addRequirements(grabberSubsystem);
     }
 
-    public enum ServoMotorType {
-        GRABBER,
-        ROTATION
-    }
-
-    public enum ServoMotorState {
-        OPEN,
-        CLOSE
-    }
-
     @Override
     public void execute() {
-        switch(type) {
+        switch (type) {
             case GRABBER:
-                switch(state) {
+                switch (state) {
                     case OPEN:
                         grabberSubsystem.openGrabServo();
                         break;
@@ -40,7 +30,7 @@ public class GrabberServoCommand extends CommandBase {
                 }
                 break;
             case ROTATION:
-                switch(state) {
+                switch (state) {
                     case OPEN:
                         grabberSubsystem.rotateGrabServoIntake();
                         break;
@@ -50,5 +40,15 @@ public class GrabberServoCommand extends CommandBase {
                 }
                 break;
         }
+    }
+
+    public enum ServoMotorType {
+        GRABBER,
+        ROTATION
+    }
+
+    public enum ServoMotorState {
+        OPEN,
+        CLOSE
     }
 }

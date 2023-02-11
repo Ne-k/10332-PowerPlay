@@ -18,6 +18,7 @@ public class GrabberSubsystem implements Subsystem {
     public void closeGrabServo() {
         grabServo.setPosition(0);
     }
+
     public void openGrabServo() {
         grabServo.setPosition(1);
     }

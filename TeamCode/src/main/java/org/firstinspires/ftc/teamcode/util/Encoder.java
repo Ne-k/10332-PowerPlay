@@ -3,6 +3,10 @@ package org.firstinspires.ftc.teamcode.util;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 
 public interface Encoder {
+    PositionVelocityPair getPositionAndVelocity();
+
+    DcMotorController getController();
+
     class PositionVelocityPair {
         public final int position, velocity;
 
@@ -11,8 +15,4 @@ public interface Encoder {
             this.velocity = velocity;
         }
     }
-
-    PositionVelocityPair getPositionAndVelocity();
-
-    DcMotorController getController();
 }

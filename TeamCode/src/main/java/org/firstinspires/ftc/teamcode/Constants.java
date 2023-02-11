@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 public class Constants {
 
     public static String webcamName = "Webcam 1";
+
     public static class Motors {
 
         public static String lf = "leftFront";
@@ -18,6 +19,7 @@ public class Constants {
 
         public static String grabber180 = "grabber180";
     }
+
     public static class Servos {
 
         public static class Grabber {

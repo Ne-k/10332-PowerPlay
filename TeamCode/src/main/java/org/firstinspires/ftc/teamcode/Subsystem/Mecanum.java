@@ -4,8 +4,6 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.har
 
 import com.arcrobotics.ftclib.command.Subsystem;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
 
@@ -45,9 +43,11 @@ public class Mecanum implements Subsystem {
     public void driveForward() {
         Drive(.5, .5, -.5, -.5);
     }
+
     public void stopAll() {
         Drive(0, 0, 0, 0);
     }
+
     @Override
     public void periodic() {
     }

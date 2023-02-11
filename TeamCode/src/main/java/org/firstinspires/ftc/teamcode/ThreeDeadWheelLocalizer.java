@@ -47,16 +47,16 @@ public final class ThreeDeadWheelLocalizer implements Localizer {
 
         Twist2dIncrDual<Time> twistIncr = new Twist2dIncrDual<>(
                 new Vector2dDual<>(
-                        new DualNum<Time>(new double[] {
+                        new DualNum<Time>(new double[]{
                                 (PAR0_Y_TICKS * par1PosDelta - PAR1_Y_TICKS * par0PosDelta) / (PAR0_Y_TICKS - PAR1_Y_TICKS),
                                 (PAR0_Y_TICKS * par1PosVel.velocity - PAR1_Y_TICKS * par0PosVel.velocity) / (PAR0_Y_TICKS - PAR1_Y_TICKS),
                         }).times(inPerTick),
-                        new DualNum<Time>(new double[] {
+                        new DualNum<Time>(new double[]{
                                 (PERP_X_TICKS / (PAR0_Y_TICKS - PAR1_Y_TICKS) * (par1PosDelta - par0PosDelta) + perpPosDelta),
                                 (PERP_X_TICKS / (PAR0_Y_TICKS - PAR1_Y_TICKS) * (par1PosVel.velocity - par0PosVel.velocity) + perpPosVel.velocity),
                         }).times(inPerTick)
                 ),
-                new DualNum<>(new double[] {
+                new DualNum<>(new double[]{
                         (par0PosDelta - par1PosDelta) / (PAR0_Y_TICKS - PAR1_Y_TICKS),
                         (par0PosVel.velocity - par1PosVel.velocity) / (PAR0_Y_TICKS - PAR1_Y_TICKS),
                 })

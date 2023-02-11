@@ -98,11 +98,100 @@ public final class MecanumDrive {
     public final BNO055Wrapper imu;
 
     public final Localizer localizer;
+    public final double inPerTick = IN_PER_TICK;
+    private final LinkedList<Pose2d> poseHistory = new LinkedList<>();
     public Pose2d pose;
 
-    public final double inPerTick = IN_PER_TICK;
+    public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
+        this.pose = pose;
 
-    private final LinkedList<Pose2d> poseHistory = new LinkedList<>();
+        LynxFirmwareVersion.throwIfAnyModulesBelowVersion(hardwareMap,
+                new LynxFirmwareVersion(1, 8, 2));
+
+        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+
+        leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
+        leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
+        rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
+        rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
+
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        BNO055IMU baseImu = hardwareMap.get(BNO055IMU.class, "imu");
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+        baseImu.initialize(parameters);
+        imu = new BNO055Wrapper(baseImu);
+
+        voltageSensor = hardwareMap.voltageSensor.iterator().next();
+
+        localizer = new DriveLocalizer();
+    }
+
+    private static void drawRobot(Canvas c, Pose2d t) {
+        final double ROBOT_RADIUS = 9;
+
+        c.setStrokeWidth(1);
+        c.strokeCircle(t.trans.x, t.trans.y, ROBOT_RADIUS);
+
+        Vector2d halfv = t.rot.vec().times(0.5 * ROBOT_RADIUS);
+        Vector2d p1 = t.trans.plus(halfv);
+        Vector2d p2 = p1.plus(halfv);
+        c.strokeLine(p1.x, p1.y, p2.x, p2.y);
+    }
+
+    public void setDrivePowers(Twist2d powers) {
+        MecanumKinematics.WheelVelocities<Time> wheelVels = kinematics.inverse(Twist2dDual.constant(powers, 1));
+        leftFront.setPower(wheelVels.leftFront.get(0));
+        leftBack.setPower(wheelVels.leftBack.get(0));
+        rightBack.setPower(wheelVels.rightBack.get(0));
+        rightFront.setPower(wheelVels.rightFront.get(0));
+    }
+
+    private Twist2d updatePoseEstimateAndGetActualVel() {
+        Twist2dIncrDual<Time> incr = localizer.updateAndGetIncr();
+        pose = pose.plus(incr.value());
+
+        poseHistory.add(pose);
+        while (poseHistory.size() > 100) {
+            poseHistory.removeFirst();
+        }
+
+        return incr.velocity().value();
+    }
+
+    private void drawPoseHistory(Canvas c) {
+        double[] xPoints = new double[poseHistory.size()];
+        double[] yPoints = new double[poseHistory.size()];
+
+        int i = 0;
+        for (Pose2d t : poseHistory) {
+            xPoints[i] = t.trans.x;
+            yPoints[i] = t.trans.y;
+
+            i++;
+        }
+
+        c.setStrokeWidth(1);
+        c.setStroke("#3F51B5");
+        c.strokePolyline(xPoints, yPoints);
+    }
+
+    public TrajectoryActionBuilder actionBuilder(Pose2d beginPose) {
+        return new TrajectoryActionBuilder(
+                TurnAction::new,
+                FollowTrajectoryAction::new,
+                beginPose, 1e-6,
+                defaultTurnConstraints,
+                defaultVelConstraint, defaultAccelConstraint,
+                0.25
+        );
+    }
 
     public class DriveLocalizer implements Localizer {
         public final Encoder leftFront, leftRear, rightRear, rightFront;
@@ -156,50 +245,10 @@ public final class MecanumDrive {
         }
     }
 
-    public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
-        this.pose = pose;
-
-        LynxFirmwareVersion.throwIfAnyModulesBelowVersion(hardwareMap,
-                new LynxFirmwareVersion(1, 8, 2));
-
-        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
-        }
-
-        leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
-        leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
-        rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
-        rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
-
-        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        BNO055IMU baseImu = hardwareMap.get(BNO055IMU.class, "imu");
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-        baseImu.initialize(parameters);
-        imu = new BNO055Wrapper(baseImu);
-
-        voltageSensor = hardwareMap.voltageSensor.iterator().next();
-
-        localizer = new DriveLocalizer();
-    }
-
-    public void setDrivePowers(Twist2d powers) {
-        MecanumKinematics.WheelVelocities<Time> wheelVels = kinematics.inverse(Twist2dDual.constant(powers, 1));
-        leftFront.setPower(wheelVels.leftFront.get(0));
-        leftBack.setPower(wheelVels.leftBack.get(0));
-        rightBack.setPower(wheelVels.rightBack.get(0));
-        rightFront.setPower(wheelVels.rightFront.get(0));
-    }
-
     public final class FollowTrajectoryAction implements Action {
         public final TimeTrajectory timeTrajectory;
-        private double beginTs = -1;
-
         private final double[] xPoints, yPoints;
+        private double beginTs = -1;
 
         public FollowTrajectoryAction(TimeTrajectory t) {
             timeTrajectory = t;
@@ -351,57 +400,5 @@ public final class MecanumDrive {
             c.setStroke("#7C4DFF7A");
             c.fillCircle(turn.beginPose.trans.x, turn.beginPose.trans.y, 2);
         }
-    }
-
-    private Twist2d updatePoseEstimateAndGetActualVel() {
-        Twist2dIncrDual<Time> incr = localizer.updateAndGetIncr();
-        pose = pose.plus(incr.value());
-
-        poseHistory.add(pose);
-        while (poseHistory.size() > 100) {
-            poseHistory.removeFirst();
-        }
-
-        return incr.velocity().value();
-    }
-
-    private void drawPoseHistory(Canvas c) {
-        double[] xPoints = new double[poseHistory.size()];
-        double[] yPoints = new double[poseHistory.size()];
-
-        int i = 0;
-        for (Pose2d t : poseHistory) {
-            xPoints[i] = t.trans.x;
-            yPoints[i] = t.trans.y;
-
-            i++;
-        }
-
-        c.setStrokeWidth(1);
-        c.setStroke("#3F51B5");
-        c.strokePolyline(xPoints, yPoints);
-    }
-
-    private static void drawRobot(Canvas c, Pose2d t) {
-        final double ROBOT_RADIUS = 9;
-
-        c.setStrokeWidth(1);
-        c.strokeCircle(t.trans.x, t.trans.y, ROBOT_RADIUS);
-
-        Vector2d halfv = t.rot.vec().times(0.5 * ROBOT_RADIUS);
-        Vector2d p1 = t.trans.plus(halfv);
-        Vector2d p2 = p1.plus(halfv);
-        c.strokeLine(p1.x, p1.y, p2.x, p2.y);
-    }
-
-    public TrajectoryActionBuilder actionBuilder(Pose2d beginPose) {
-        return new TrajectoryActionBuilder(
-                TurnAction::new,
-                FollowTrajectoryAction::new,
-                beginPose, 1e-6,
-                defaultTurnConstraints,
-                defaultVelConstraint, defaultAccelConstraint,
-                0.25
-        );
     }
 }

@@ -17,11 +17,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class ManualFeedforwardTuner extends LinearOpMode {
     public static double DISTANCE = 64;
 
-    enum Mode {
-        DRIVER_MODE,
-        TUNING_MODE
-    }
-
     @Override
     public void runOpMode() {
         Telemetry telemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -99,5 +94,10 @@ public class ManualFeedforwardTuner extends LinearOpMode {
 
             telemetry.update();
         }
+    }
+
+    enum Mode {
+        DRIVER_MODE,
+        TUNING_MODE
     }
 }
