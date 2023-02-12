@@ -4,17 +4,18 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.har
 
 import com.arcrobotics.ftclib.command.Subsystem;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 
 import org.firstinspires.ftc.teamcode.Constants;
 
 public class Mecanum implements Subsystem {
-    Motor leftFront, leftRear, rightFront, rightRear;
+    MotorEx leftFront, leftRear, rightFront, rightRear;
 
     public Mecanum() {
-        leftFront = new Motor(hardwareMap, Constants.Motors.lf);
-        leftRear = new Motor(hardwareMap, Constants.Motors.lr);
-        rightFront = new Motor(hardwareMap, Constants.Motors.rf);
-        rightRear = new Motor(hardwareMap, Constants.Motors.rr);
+        leftFront = new MotorEx(hardwareMap, Constants.Motors.lf);
+        leftRear = new MotorEx(hardwareMap, Constants.Motors.lr);
+        rightFront = new MotorEx(hardwareMap, Constants.Motors.rf);
+        rightRear = new MotorEx(hardwareMap, Constants.Motors.rr);
 
         leftFront.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);

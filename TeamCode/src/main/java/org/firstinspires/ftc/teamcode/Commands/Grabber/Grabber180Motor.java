@@ -37,14 +37,10 @@ public class Grabber180Motor extends CommandBase {
 
     }
 
-    @Override
-    public void end(boolean interrupted) {
-        grabberMotor.isAtPosition();
-    }
 
     @Override
     public boolean isFinished() {
-        return false;
+        return grabberMotor.isAtPosition();
     }
 
     public enum GrabberMotorState {

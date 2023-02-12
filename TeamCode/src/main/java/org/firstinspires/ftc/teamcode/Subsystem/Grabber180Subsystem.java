@@ -46,6 +46,13 @@ public class Grabber180Subsystem extends SubsystemBase {
         return pid.atSetPoint();
     }
 
+    public void resetEncoder() {
+        grabber180.resetEncoder();
+    }
+    public void Override(double speed) {
+        grabber180.set(speed);
+    }
+
     @Override
     public void periodic() {
     }
