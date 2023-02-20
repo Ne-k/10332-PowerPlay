@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.Commands.MecanumCommand;
 import org.firstinspires.ftc.teamcode.Subsystem.Grabber180Subsystem;
 import org.firstinspires.ftc.teamcode.Subsystem.GrabberSubsystem;
 import org.firstinspires.ftc.teamcode.Subsystem.Mecanum;
+import org.firstinspires.ftc.teamcode.Subsystem.OuttakeSubsystem;
 
 @TeleOp(name = "TeleOp", group = "TeleOp")
 public class RobotContainer extends CommandOpMode {
@@ -25,7 +26,7 @@ public class RobotContainer extends CommandOpMode {
         Grabber180Subsystem grabberMotorSubsystem = new Grabber180Subsystem();
         GrabberSubsystem grabberSubsystem = new GrabberSubsystem();
         Mecanum mecanum = new Mecanum();
-        OuttakeSubsustem outtakeSubsustem = new OuttakeSubsustem();
+        OuttakeSubsystem outtakeSubsustem = new OuttakeSubsystem();
 
         Grabber180Motor start = new Grabber180Motor(grabberMotorSubsystem, Grabber180Motor.GrabberMotorState.UP);
         Grabber180Motor mid = new Grabber180Motor(grabberMotorSubsystem, Grabber180Motor.GrabberMotorState.MID);
