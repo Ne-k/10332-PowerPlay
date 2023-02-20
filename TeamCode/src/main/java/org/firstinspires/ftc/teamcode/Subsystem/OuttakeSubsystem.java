@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.har
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Constants;
 
@@ -12,10 +13,10 @@ public class OuttakeSubsystem extends SubsystemBase {
     MotorEx sliderMotor1, sliderMotor2;
     PIDController pid = new PIDController(1, 0, 0);
 
-    public OuttakeSubsystem() {
+    public OuttakeSubsystem(final HardwareMap hmap) {
 
-        sliderMotor1 = new MotorEx(hardwareMap, Constants.Motors.sM1);
-        sliderMotor2 = new MotorEx(hardwareMap, Constants.Motors.sM2);
+        sliderMotor1 = new MotorEx(hmap, Constants.Motors.sM1);
+        sliderMotor2 = new MotorEx(hmap, Constants.Motors.sM2);
 
         sliderMotor1.setZeroPowerBehavior(MotorEx.ZeroPowerBehavior.BRAKE);
         sliderMotor2.setZeroPowerBehavior(MotorEx.ZeroPowerBehavior.BRAKE);

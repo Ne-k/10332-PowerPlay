@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.har
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Constants;
 
@@ -15,8 +16,8 @@ public class Grabber180Subsystem extends SubsystemBase {
     MotorEx grabber180;
     PIDController pid = new PIDController(1, 0, 0);
 
-    public Grabber180Subsystem() {
-        grabber180 = new MotorEx(hardwareMap, Constants.Motors.grabber180);
+    public Grabber180Subsystem(final HardwareMap hmap) {
+        grabber180 = new MotorEx(hmap, Constants.Motors.grabber180);
         grabber180.setZeroPowerBehavior(MotorEx.ZeroPowerBehavior.BRAKE);
     }
 

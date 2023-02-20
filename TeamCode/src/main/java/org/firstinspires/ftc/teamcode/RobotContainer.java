@@ -15,23 +15,23 @@ import org.firstinspires.ftc.teamcode.Subsystem.OuttakeSubsystem;
 @TeleOp(name = "TeleOp", group = "TeleOp")
 public class RobotContainer extends CommandOpMode {
     private Button m_grabButton, m_releaseButton;
-    private GamepadEx gpEx1, gpEx2;
+    private GamepadEx driver, gpEx2;
 
     @Override
     public void initialize() {
-        gpEx1 = new GamepadEx(gamepad1);
+        driver = new GamepadEx(gamepad1);
         gpEx2 = new GamepadEx(gamepad2);
 
 
-        Grabber180Subsystem grabberMotorSubsystem = new Grabber180Subsystem();
-        GrabberSubsystem grabberSubsystem = new GrabberSubsystem();
-        Mecanum mecanum = new Mecanum();
-        OuttakeSubsystem outtakeSubsustem = new OuttakeSubsystem();
+        Grabber180Subsystem grabberMotorSubsystem = new Grabber180Subsystem(hardwareMap);
+        GrabberSubsystem grabberSubsystem = new GrabberSubsystem(hardwareMap);
+        Mecanum mecanum = new Mecanum(hardwareMap);
+        OuttakeSubsystem outtakeSubsustem = new OuttakeSubsystem(hardwareMap);
 
         Grabber180Motor start = new Grabber180Motor(grabberMotorSubsystem, Grabber180Motor.GrabberMotorState.UP);
         Grabber180Motor mid = new Grabber180Motor(grabberMotorSubsystem, Grabber180Motor.GrabberMotorState.MID);
         Grabber180Motor down = new Grabber180Motor(grabberMotorSubsystem, Grabber180Motor.GrabberMotorState.DOWN);
-        MecanumCommand mecanumCommand = new MecanumCommand(mecanum, gpEx1);
+        MecanumCommand mecanumCommand = new MecanumCommand(mecanum, driver);
 
         register(mecanum);
         register(grabberMotorSubsystem);

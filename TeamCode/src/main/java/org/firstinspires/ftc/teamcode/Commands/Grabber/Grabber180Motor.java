@@ -6,7 +6,7 @@ import org.firstinspires.ftc.teamcode.Subsystem.Grabber180Subsystem;
 
 public class Grabber180Motor extends CommandBase {
 
-    private Grabber180Subsystem grabberMotor = new Grabber180Subsystem();
+    private Grabber180Subsystem grabberMotor;
     private final GrabberMotorState state;
 
     public Grabber180Motor(Grabber180Subsystem grabberMotorSubsystem, GrabberMotorState state) {
