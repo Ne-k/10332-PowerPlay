@@ -7,12 +7,13 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Constants;
 
 public class Grabber180Subsystem extends SubsystemBase {
-    private final int mid = -311;
+    private final int mid = -308;
     private final int startPos = 0;
-    private final int fullDown = -1197;
+    private final int fullDown = -1200;
     MotorEx grabber180;
     PIDController pid = new PIDController(1, 0, 0);
 
@@ -34,6 +35,12 @@ public class Grabber180Subsystem extends SubsystemBase {
     public void runGrabberMid() {
         runGrabberPos(mid);
     }
+    public void runGrabberManual(double speed) {
+        grabber180.set(speed);
+    }
+    public void stopMotor() {
+        grabber180.set(0);
+    }
 
     public void runGrabberStartPos() {
         runGrabberPos(startPos);
@@ -52,6 +59,12 @@ public class Grabber180Subsystem extends SubsystemBase {
     }
     public void Override(double speed) {
         grabber180.set(speed);
+    }
+
+    public void debug(Telemetry telem) {
+        telem.addData("Grabber180", grabber180.getCurrentPosition());
+
+        telem.update();
     }
 
     @Override

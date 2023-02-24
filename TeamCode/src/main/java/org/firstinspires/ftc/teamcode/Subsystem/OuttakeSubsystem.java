@@ -24,8 +24,14 @@ public class OuttakeSubsystem extends SubsystemBase {
 
     public void runOuttake(double speed) {
         sliderMotor1.set(speed);
-        sliderMotor2.set(speed);
+        sliderMotor2.set(-speed);
     }
+
+    public void stopAll() {
+        sliderMotor1.stopMotor();
+        sliderMotor2.stopMotor();
+    }
+
 
     public void runSliderPID(double position) {
         double output = pid.calculate(

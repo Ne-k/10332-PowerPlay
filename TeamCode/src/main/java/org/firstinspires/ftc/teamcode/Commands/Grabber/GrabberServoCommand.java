@@ -6,7 +6,7 @@ import org.firstinspires.ftc.teamcode.Subsystem.GrabberSubsystem;
 
 public class GrabberServoCommand extends CommandBase {
     private final GrabberSubsystem grabberSubsystem;
-    private final ServoMotorState state;
+    public final ServoMotorState state;
     private final ServoMotorType type;
 
     public GrabberServoCommand(GrabberSubsystem grabberSubsystem, ServoMotorType type, ServoMotorState state) {

@@ -17,20 +17,21 @@ public class GrabberSubsystem implements Subsystem {
     }
 
     public void closeGrabServo() {
-        grabServo.setPosition(0);
+        grabServo.setPosition(.29);
     }
 
     public void openGrabServo() {
-        grabServo.setPosition(1);
+        grabServo.setPosition(0);
     }
 
     public void rotateGrabServoOuttake() {
-        rotServo.setPosition(0.1);
+        rotServo.setPosition(.25);
     }
 
     public void rotateGrabServoIntake() {
-        rotServo.setPosition(.7);
+        rotServo.setPosition(.88);
     }
+
 
 
     @Override

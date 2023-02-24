@@ -34,6 +34,7 @@ public class MecanumCommand extends CommandBase {
         double backRightPower = (y + x - rx) / denominator;
 
         mecanum.Drive(frontLeftPower, backLeftPower, frontRightPower, backRightPower);
+
     }
 
     @Override

@@ -10,13 +10,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.Constants;
 
 public class Mecanum implements Subsystem {
-    MotorEx leftFront, leftRear, rightFront, rightRear;
+    Motor leftFront, leftRear, rightFront, rightRear;
 
     public Mecanum(final HardwareMap hmap) {
-        leftFront = new MotorEx(hmap, Constants.Motors.lf);
-        leftRear = new MotorEx(hmap, Constants.Motors.lr);
-        rightFront = new MotorEx(hmap, Constants.Motors.rf);
-        rightRear = new MotorEx(hmap, Constants.Motors.rr);
+        leftFront = new Motor(hmap, Constants.Motors.lf);
+        leftRear = new Motor(hmap, Constants.Motors.lr);
+        rightFront = new Motor(hmap, Constants.Motors.rf);
+        rightRear = new Motor(hmap, Constants.Motors.rr);
 
         leftFront.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
